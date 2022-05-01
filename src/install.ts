@@ -7,7 +7,7 @@ import { mkdir, readFile, rm, stat } from 'fs/promises';
 import { spawn } from 'child_process';
 import { createHash } from 'crypto';
 import { sysrootsDir } from './sysrootsDir';
-import { join } from '../join';
+import { join } from 'smake';
 import { extract } from 'tar-stream';
 import { dirname } from 'path';
 import { createReadStream, createWriteStream } from 'fs';

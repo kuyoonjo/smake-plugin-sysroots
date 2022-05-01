@@ -4,9 +4,7 @@ import { ls } from './ls';
 import { uninstall } from './uninstall';
 
 function command(program: Command) {
-  const sysroots = program
-    .command('sysroots [subcommand]')
-    .description('manage sysroots');
+  const sysroots = program.command('sysroots').description('manage sysroots');
   sysroots
     .command('ls')
     .description('list sysroots')

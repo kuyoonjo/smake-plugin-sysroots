@@ -1,6 +1,6 @@
 import { yellow } from 'colors/safe';
 import { rm } from 'fs/promises';
-import { join } from '../join';
+import { join } from 'smake';
 import { CommonGroups } from './CommonGroups';
 import { CommonTargets } from './commonTargets';
 import { isInstalled } from './isInstalled';

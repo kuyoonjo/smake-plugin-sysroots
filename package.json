@@ -1,6 +1,6 @@
 {
-  "name": "@smake/plugin-sysroots",
-  "version": "1.1.2",
+  "name": "@smake-plugins/sysroots",
+  "version": "1.0.0",
   "description": "Typescript Module Template",
   "license": "MIT",
   "repository": "",
@@ -22,14 +22,10 @@
   ],
   "main": "lib/index",
   "types": "lib/index",
-  "bin": {
-    "smake": "./lib/bin.js"
-  },
   "scripts": {
     "clean": "rimraf lib && rimraf coverage",
     "format": "prettier --write \"{src,__tests__}/**/*.ts\" --single-quote --trailing-comma es5",
     "lint": "tslint --force --format verbose \"src/**/*.ts\"",
-    "prepublishOnly": "npm run build",
     "prebuild": "npm run clean && npm run format && npm run lint && echo Using TypeScript && tsc --version",
     "build": "tsc --pretty"
   },
@@ -52,6 +48,7 @@
     "cli-progress": "^3.10.0",
     "colors": "^1.4.0",
     "commander": "9.2.0",
+    "smake": "^2.0.0",
     "tar-stream": "^2.2.0"
   }
 }

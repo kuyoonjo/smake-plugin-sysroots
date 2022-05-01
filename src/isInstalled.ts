@@ -1,5 +1,5 @@
 import { stat } from 'fs/promises';
-import { join } from '../join';
+import { join } from 'smake';
 import { CommonTargets } from './commonTargets';
 import { sysrootsDir } from './sysrootsDir';
 
