@@ -3,7 +3,7 @@ import { CommonGroups } from './CommonGroups';
 import { CommonTargets } from './commonTargets';
 import { MultiBar } from 'cli-progress';
 import { downloadFile } from './download';
-import { mkdir, readFile, rm, stat } from 'fs/promises';
+import { mkdir, readFile, rm, stat, symlink } from 'fs/promises';
 import { spawn } from 'child_process';
 import { createHash } from 'crypto';
 import { sysrootsDir } from './sysrootsDir';
@@ -135,15 +135,27 @@ async function untar(
     let prefix = output + '/';
     const extractor = extract();
     extractor.on('entry', async (header, stream, next) => {
-      const dist = prefix + header.name;
-      await mkdir(dirname(dist), { recursive: true });
-      const ws = createWriteStream(dist);
-      stream.on('end', () => {
-        size += header.size || 0;
-        onProgress && onProgress(Math.floor((size / totalSize) * 100));
+      if (header.type === 'file') {
+        const dist = prefix + header.name;
+        await mkdir(dirname(dist), { recursive: true });
+        const ws = createWriteStream(dist);
+        stream.on('end', () => {
+          size += header.size || 0;
+          onProgress && onProgress(Math.floor((size / totalSize) * 100));
+          next();
+        });
+        stream.pipe(ws);
+      } else if (header.type === 'symlink') {
+        const dist = prefix + header.name;
+        await mkdir(dirname(dist), { recursive: true });
+        await rm(dist);
+        symlink(header.linkname!, dist);
+        stream.resume();
         next();
-      });
-      stream.pipe(ws);
+      } else {
+        stream.resume();
+        next();
+      }
     });
     extractor.once('finish', r);
     const rs = createReadStream(input);
