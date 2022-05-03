@@ -16,13 +16,10 @@ export const CommonTargets: {
   'arm-unknown-linux-musleabihf': ['arm-unknown-linux-musleabihf'],
   'armv7-unknown-linux-musleabihf': ['armv7-unknown-linux-musleabihf'],
 
-  'x86_64-pc-windows-msvc': ['msvc-headers', 'msvc-lib-x86_64-pc-windows-msvc'],
-  'i686-pc-windows-msvc': ['msvc-headers', 'msvc-lib-i686-pc-windows-msvc'],
-  'aarch64-pc-windows-msvc': [
-    'msvc-headers',
-    'msvc-lib-aarch64-pc-windows-msvc',
-  ],
-  'arm-pc-windows-msvc': ['msvc-headers', 'msvc-lib-arm-pc-windows-msvc'],
+  'x86_64-pc-windows-msvc': ['msvc-headers', 'msvc-lib-x64'],
+  'i686-pc-windows-msvc': ['msvc-headers', 'msvc-lib-x86'],
+  'aarch64-pc-windows-msvc': ['msvc-headers', 'msvc-lib-arm64'],
+  'arm-pc-windows-msvc': ['msvc-headers', 'msvc-lib-arm'],
 
   'wasm32-unknown-wasi': ['wasi'],
   'wasm64-unknown-wasi': ['wasi'],

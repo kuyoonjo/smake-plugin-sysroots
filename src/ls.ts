@@ -1,4 +1,6 @@
 import { gray, green, yellow } from 'colors/safe';
+import { stat } from 'fs/promises';
+import { join } from 'smake';
 import { CommonGroups } from './CommonGroups';
 import { CommonTargets } from './commonTargets';
 import { isInstalled } from './isInstalled';
@@ -18,6 +20,30 @@ export async function ls(opt: any) {
       .replace(/_/g, '-')
       .replace('x86-64', 'x86_64');
     targets[target] = yellow(`installed by ENV at ${v}`);
+  }
+
+  if (process.env['SMAKE_LLVM_MSVC_PATH']) {
+    const ex = async (d: string) => {
+      try {
+        const st = await stat(d);
+        return st.isDirectory();
+      } catch {
+        return false;
+      }
+    };
+
+    const vcDir = process.env['SMAKE_LLVM_MSVC_PATH'];
+    await Promise.all(
+      [
+        ['x86_64-pc-windows-msvc', 'x64'],
+        ['i686-pc-windows-msvc', 'x86'],
+        ['aarch64-pc-windows-msvc', 'arm64'],
+        ['arm-pc-windows-msvc', 'arm'],
+      ].map(async (e) => {
+        if (await ex(join(vcDir, 'lib', e[1])))
+          targets[e[0]] = yellow(`installed by ENV at ${vcDir}`);
+      })
+    );
   }
 
   const keys = Object.keys(targets);

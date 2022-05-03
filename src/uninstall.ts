@@ -53,9 +53,60 @@ export async function uninstall(
     .flat()
     .filter((s) => !remained.has(s));
   await Promise.all(
-    itemsToUninstall.map((t) =>
-      rm(join(sysrootsDir, t), { recursive: true, force: true })
-    )
+    itemsToUninstall.map(async (t) => {
+      if (t.includes('msvc')) {
+        if (t === 'msvc-headers') {
+          await rm(join(sysrootsDir, 'msvc', 'vc', 'include'), {
+            recursive: true,
+            force: true,
+          });
+          await rm(join(sysrootsDir, 'msvc', 'kits', 'Include'), {
+            recursive: true,
+            force: true,
+          });
+        } else {
+          const info = require(join(sysrootsDir, 'msvc', 'info.json'));
+          const arch = t.split('-')[2];
+
+          await rm(join(sysrootsDir, 'msvc', 'vc', 'lib', arch), {
+            recursive: true,
+            force: true,
+          });
+          await rm(
+            join(
+              sysrootsDir,
+              'msvc',
+              'kits',
+              'Lib',
+              info.win_kits_ver,
+              'ucrt',
+              arch
+            ),
+            {
+              recursive: true,
+              force: true,
+            }
+          );
+          await rm(
+            join(
+              sysrootsDir,
+              'msvc',
+              'kits',
+              'Lib',
+              info.win_kits_ver,
+              'um',
+              arch
+            ),
+            {
+              recursive: true,
+              force: true,
+            }
+          );
+        }
+      } else {
+        await rm(join(sysrootsDir, t), { recursive: true, force: true });
+      }
+    })
   );
   console.log('done.');
 }

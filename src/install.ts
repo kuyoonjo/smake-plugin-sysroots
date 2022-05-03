@@ -11,6 +11,7 @@ import { join } from 'smake';
 import { extract } from 'tar-stream';
 import { dirname } from 'path';
 import { createReadStream, createWriteStream } from 'fs';
+import { isItemInstalled } from './isInstalled';
 
 const urlBase =
   'https://github.com/kuyoonjo/sysroots/releases/download/v1.0.0/';
@@ -61,7 +62,7 @@ export async function install(
   await Promise.all(
     Array.from(toInstall).map(async (t) => {
       const bar = multibar.create(100, 0, { name: t, msg: `installing` });
-      if (!opt.force && (await isInstalled(t))) {
+      if (!opt.force && (await isItemInstalled(t))) {
         bar.update(100, { msg: yellow('already installed') });
         return;
       }
@@ -102,16 +103,6 @@ export async function install(
     })
   );
   multibar.stop();
-}
-
-async function isInstalled(t: string) {
-  const dir = join(sysrootsDir, t);
-  try {
-    const st = await stat(dir);
-    return st.isDirectory();
-  } catch {
-    return false;
-  }
 }
 
 function makeUrl(t: string) {
