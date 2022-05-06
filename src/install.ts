@@ -121,10 +121,14 @@ async function untar(
 ) {
   const st = await stat(input);
   const totalSize = st.size;
-  await new Promise((r) => {
+  await new Promise<void>((r) => {
     let size = 0;
     let prefix = output + '/';
     const extractor = extract();
+    const toSymlink: Array<{
+      link: string;
+      dist: string;
+    }> = [];
     extractor.on('entry', async (header, stream, next) => {
       if (header.type === 'file') {
         const dist = prefix + header.name;
@@ -139,8 +143,8 @@ async function untar(
       } else if (header.type === 'symlink') {
         const dist = prefix + header.name;
         await mkdir(dirname(dist), { recursive: true });
-        await rm(dist);
-        symlink(header.linkname!, dist);
+        await rm(dist, { force: true, recursive: true });
+        toSymlink.push({ link: header.linkname!, dist });
         stream.resume();
         next();
       } else {
@@ -148,7 +152,12 @@ async function untar(
         next();
       }
     });
-    extractor.once('finish', r);
+    extractor.once('finish', async () => {
+      for (const x of toSymlink) {
+        await symlink(x.link, x.dist);
+      }
+      r();
+    });
     const rs = createReadStream(input);
     rs.pipe(extractor);
   });
