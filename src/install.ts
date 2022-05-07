@@ -3,16 +3,15 @@ import { CommonGroups } from './CommonGroups';
 import { CommonTargets } from './commonTargets';
 import { MultiBar } from 'cli-progress';
 import { downloadFile } from './download';
-import { copyFile, mkdir, readFile, rm, stat, symlink } from 'fs/promises';
+import { mkdir, readFile, rm, stat, symlink } from 'fs/promises';
 import { spawn } from 'child_process';
 import { createHash } from 'crypto';
 import { sysrootsDir } from './sysrootsDir';
 import { join } from 'smake';
 import { extract } from 'tar-stream';
-import { dirname, resolve } from 'path';
+import { dirname } from 'path';
 import { createReadStream, createWriteStream } from 'fs';
 import { isItemInstalled } from './isInstalled';
-import { copy } from 'fs-extra';
 
 const urlBase =
   'https://github.com/kuyoonjo/sysroots/releases/download/v1.0.0/';
@@ -115,7 +114,7 @@ async function makeDist(t: string) {
   return join(sysrootsDir, t);
 }
 
-async function untar(
+export async function untar(
   input: string,
   output: string,
   onProgress?: (progress: number) => void
@@ -154,25 +153,8 @@ async function untar(
       }
     });
     extractor.once('finish', async () => {
-      if (process.platform === 'win32') {
-        for (const x of toSymlink) {
-          try {
-            const st = await stat(x.link);
-            if (st.isFile()) {
-              const src = resolve(dirname(x.dist), x.link).replaceAll('\\', '/');
-              await copyFile(src, x.dist);
-            } else if (st.isDirectory()) {
-              const src = resolve(dirname(x.dist), x.link).replaceAll('\\', '/');
-              await copy(src, x.dist, { recursive: true });
-            }
-          } catch {
-
-          }
-        }
-      } else {
-        for (const x of toSymlink) {
-          await symlink(x.link, x.dist);
-        }
+      for (const x of toSymlink) {
+        await symlink(x.link, x.dist);
       }
       r();
     });
