@@ -7,13 +7,13 @@ export const CommonTargets: {
   'i686-unknown-linux-gnu': ['i686-unknown-linux-gnu'],
   'x86_64-unknown-linux-gnu': ['x86_64-unknown-linux-gnu'],
   'aarch64-unknown-linux-gnu': ['aarch64-unknown-linux-gnu'],
+  'arm-unknown-linux-gnueabi': ['arm-unknown-linux-gnueabi'],
   'arm-unknown-linux-gnueabihf': ['arm-unknown-linux-gnueabihf'],
   'armv7-unknown-linux-gnueabihf': ['armv7-unknown-linux-gnueabihf'],
 
   'i686-unknown-linux-musl': ['i686-unknown-linux-musl'],
   'x86_64-unknown-linux-musl': ['x86_64-unknown-linux-musl'],
   'aarch64-unknown-linux-musl': ['aarch64-unknown-linux-musl'],
-  'arm-unknown-linux-musleabihf': ['arm-unknown-linux-musleabihf'],
   'armv7-unknown-linux-musleabihf': ['armv7-unknown-linux-musleabihf'],
 
   'x86_64-pc-windows-msvc': ['msvc-headers', 'msvc-lib-x64'],
