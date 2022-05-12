@@ -1,29 +1,20 @@
-import axios from 'axios';
-import { createWriteStream } from 'fs';
+import { download } from 'wget-improved';
 
-export async function downloadFile(
+export function downloadFile(
   url: string,
   savePath: string,
   onProgress?: (progress: number) => void
 ) {
-  const { data, headers } = await axios({
-    url,
-    method: 'GET',
-    responseType: 'stream',
-    timeout: 5000,
-  });
-
-  await new Promise((r, rr) => {
-    const contentLength = headers['content-length'];
-    let savedLength = 0;
-
-    data.on('data', (chunk: Buffer) => {
-      savedLength += chunk.length;
-      onProgress && onProgress(Math.floor((savedLength / contentLength) * 100));
+  return new Promise<void>((r, rr) => {
+    const res = download(url, savePath);
+    res.on('error', (err) => {
+      rr(err);
     });
-
-    data.on('error', rr);
-    data.on('end', r);
-    data.pipe(createWriteStream(savePath));
+    res.on('end', () => {
+      r();
+    });
+    res.on('progress', (progress) => {
+      onProgress && onProgress(progress * 100);
+    });
   });
 }

@@ -1,6 +1,6 @@
 {
   "name": "@smake-plugins/sysroots",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Typescript Module Template",
   "license": "MIT",
   "repository": "",
@@ -43,11 +43,11 @@
     "node": ">=15.0.0"
   },
   "dependencies": {
-    "axios": "^0.21.1",
     "cli-progress": "^3.10.0",
     "colors": "^1.4.0",
     "commander": "9.2.0",
     "smake": "^2.0.0",
-    "tar-stream": "^2.2.0"
+    "tar-stream": "^2.2.0",
+    "wget-improved": "^3.3.1"
   }
 }

@@ -13,9 +13,9 @@ import { dirname } from 'path';
 import { createReadStream, createWriteStream } from 'fs';
 import { isItemInstalled } from './isInstalled';
 
-const urlBase =
-  'https://github.com/kuyoonjo/sysroots/releases/download/v1.0.0/';
-const urlProxy = 'https://github.yu-chen.workers.dev/';
+const urlDomain = 'github.com';
+const urlFastDomain = 'download.fastgit.org';
+const urlPath = '/kuyoonjo/sysroots/releases/download/v1.0.0/';
 let urlPrefix: string;
 
 const urlSuffix = '.tar.xz';
@@ -28,7 +28,7 @@ export async function install(
     group: boolean;
   }
 ) {
-  urlPrefix = opt.direct ? urlBase : urlProxy + urlBase;
+  urlPrefix = 'https://' + (opt.direct ? urlDomain : urlFastDomain) + urlPath;
   if (!sysroots.length) {
     console.log('error: no targets specified (use -h for help)');
     return;
@@ -69,6 +69,7 @@ export async function install(
       try {
         bar.update(0, { msg: 'downloading' });
         const url = makeUrl(t);
+        console.log(url);
         let dist = await makeDist(t);
         let savePath = dist + urlSuffix;
         await downloadFile(url, savePath, (n) => {
