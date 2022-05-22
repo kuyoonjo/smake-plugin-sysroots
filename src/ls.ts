@@ -48,7 +48,7 @@ export async function ls(opt: any) {
 
   const keys = Object.keys(targets);
   for (const g of CommonGroups) {
-    const ks = keys.filter((k) => k.includes(g.keyword));
+    const ks = keys.filter((k) => new RegExp(g.keyword).test(k));
     if (ks.length) {
       console.log(g.name);
       const installed = ks.filter((k) => targets[k]);

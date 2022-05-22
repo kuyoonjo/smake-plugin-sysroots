@@ -69,7 +69,6 @@ export async function install(
       try {
         bar.update(0, { msg: 'downloading' });
         const url = makeUrl(t);
-        console.log(url);
         let dist = await makeDist(t);
         let savePath = dist + urlSuffix;
         await downloadFile(url, savePath, (n) => {
