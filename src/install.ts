@@ -114,6 +114,15 @@ async function makeDist(t: string) {
   return join(sysrootsDir, t);
 }
 
+async function caseInsensitive(p: string) {
+  try {
+    const st = await stat(p.toUpperCase());
+    return st.isFile();
+  } catch {
+    return false;
+  }
+}
+
 export async function untar(
   input: string,
   output: string,
@@ -121,6 +130,7 @@ export async function untar(
 ) {
   const st = await stat(input);
   const totalSize = st.size;
+  const toLower = input.includes('msvc') && !(await caseInsensitive(input));
   await new Promise<void>((r) => {
     let size = 0;
     let prefix = output + '/';
@@ -131,6 +141,7 @@ export async function untar(
     }> = [];
     extractor.on('entry', async (header, stream, next) => {
       if (header.type === 'file') {
+        if (toLower) header.name = header.name.toLowerCase();
         const dist = prefix + header.name;
         await mkdir(dirname(dist), { recursive: true });
         const ws = createWriteStream(dist);
@@ -141,6 +152,10 @@ export async function untar(
         });
         stream.pipe(ws);
       } else if (header.type === 'symlink') {
+        if (toLower) {
+          header.name = header.name.toLowerCase();
+          header.linkname = header.linkname!.toLowerCase();
+        }
         const dist = prefix + header.name;
         await mkdir(dirname(dist), { recursive: true });
         await rm(dist, { force: true, recursive: true });
