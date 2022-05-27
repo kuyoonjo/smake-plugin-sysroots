@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { CommonGroups } from './CommonGroups';
+import { exec } from './exec';
 import { install } from './install';
 import { ls } from './ls';
 import { uninstall } from './uninstall';
@@ -41,6 +42,17 @@ function command(program: Command) {
     )
     .action((args, opt) => {
       uninstall(args, opt);
+    });
+
+  sysroots
+    .command('exec [commands...]')
+    .description('execute commands')
+    .option(
+      '-t, --target <string>',
+      'target triple'
+    )
+    .action((args, opt) => {
+      exec(args, opt);
     });
 }
 
