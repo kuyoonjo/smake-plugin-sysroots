@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import { CommonGroups } from './CommonGroups';
 import { install } from './install';
 import { ls } from './ls';
 import { uninstall } from './uninstall';
@@ -12,6 +13,10 @@ function command(program: Command) {
     .action((opt) => {
       ls(opt);
     });
+
+  const avalableGroups = CommonGroups.filter((g) => g.install)
+    .map((g) => g.id)
+    .join(', ');
   sysroots
     .command('install [sysroots...]')
     .description('install sysroots')
@@ -22,7 +27,7 @@ function command(program: Command) {
     .option('-f, --force', 'reinstall if already installed')
     .option(
       '-g, --group',
-      'install by group. Awailable groups: gnu-linux, musl-linux, msvc, wasi, ndk'
+      'install by group. Awailable groups: ' + avalableGroups
     )
     .action((args, opt) => {
       install(args, opt);
@@ -32,7 +37,7 @@ function command(program: Command) {
     .description('uninstall sysroots')
     .option(
       '-g, --group',
-      'uninstall by group. Awailable groups: ubuntu14.04, ubuntu20.04, alpine, gnu-smake, gnu-unknown-linux, musl-unknown-linux, msvc, wasi, ndk'
+      'uninstall by group. Awailable groups: ' + avalableGroups
     )
     .action((args, opt) => {
       uninstall(args, opt);

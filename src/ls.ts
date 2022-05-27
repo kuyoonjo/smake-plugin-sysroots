@@ -50,7 +50,7 @@ export async function ls(opt: any) {
   for (const g of CommonGroups) {
     const ks = keys.filter((k) => new RegExp(g.keyword).test(k));
     if (ks.length) {
-      console.log(g.name);
+      console.log(g.name, g.install ? `(${g.id})` : '');
       const installed = ks.filter((k) => targets[k]);
       const uninstalled = ks.filter((k) => !targets[k]);
       for (const k of installed) {
