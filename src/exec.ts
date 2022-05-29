@@ -5,14 +5,15 @@ import { join } from 'smake';
 // import { CommonGroups } from './CommonGroups';
 import { CommonTargets } from './commonTargets';
 import { isInstalled } from './isInstalled';
+import { sysrootsDir } from './sysrootsDir';
 
-export async function exec(args: string[], opt: any) {
+export async function exec(opt: any, command: string) {
   if (!opt.target) {
     console.log('`target` has to be specified.');
     return;
   }
 
-  if (!args.length) {
+  if (!command.length) {
     console.log('empty command.');
     return;
   }
@@ -58,19 +59,12 @@ export async function exec(args: string[], opt: any) {
   }
 
   const entries = Object.entries(targets);
-  const installed = entries.filter(e => e[1]).map(e => e[0]);
+  const installed = entries.filter((e) => e[1]).map((e) => e[0]);
   if (installed.includes(opt.target)) {
-    let env;
-    if (opt.target.include('windows-msvc')) {
-
-    } else if (opt.target.include('apple')) {
-
-    } else {
-
-    }
-    execSync(args.join(' '), { env, stdio: 'inherit' });
+    const env = generateEnv(opt.target);
+    execSync(command, { env: { ...process.env, ...env }, stdio: 'inherit' });
   } else {
-    if (entries.map(e => e[0]).includes(opt.target)) {
+    if (entries.map((e) => e[0]).includes(opt.target)) {
       console.log(`${yellow(opt.target)} not installed.`);
     } else {
       console.log(`unknown target: ${red(opt.target)}`);
@@ -80,9 +74,87 @@ export async function exec(args: string[], opt: any) {
 
 function generateEnv(target: string) {
   if (target.includes('windows-msvc')) {
+    let MSVC_VERSION = process.env.SMAKE_LLVM_MSVC_VERSION;
+    let MSVC_PATH = process.env.SMAKE_LLVM_MSVC_PATH;
+    let WINDOWS_KITS_10_PATH = process.env.SMAKE_LLVM_WINDOWS_KITS_10_PATH;
+    let WINDOWS_KITS_10_VERSION =
+      process.env.SMAKE_LLVM_WINDOWS_KITS_10_VERSION;
 
+    if (!MSVC_PATH) {
+      const info = require(join(sysrootsDir, 'msvc', 'info.json'));
+      MSVC_VERSION = info._MSC_VER;
+      MSVC_PATH = join(sysrootsDir, 'msvc', 'vc');
+      WINDOWS_KITS_10_PATH = join(sysrootsDir, 'msvc', 'kits');
+      WINDOWS_KITS_10_VERSION = info.win_kits_ver;
+    }
+
+    const cxflags = [
+      '-Qunused-arguments',
+      `-fmsc-version=${MSVC_VERSION}`,
+      '-fms-extensions',
+      '-fms-compatibility',
+      '-fdelayed-template-parsing',
+      '-DWIN32',
+      '-D_WINDOWS',
+      '-D_CRT_SECURE_NO_WARNINGS',
+    ];
+
+    const includes = [
+      `${MSVC_PATH}/include`,
+      `${MSVC_PATH}/atlmfc/include`,
+      `${WINDOWS_KITS_10_PATH}/include/${WINDOWS_KITS_10_VERSION}/ucrt`,
+      `${WINDOWS_KITS_10_PATH}/include/${WINDOWS_KITS_10_VERSION}/um`,
+      `${WINDOWS_KITS_10_PATH}/include/${WINDOWS_KITS_10_VERSION}/shared`,
+      `${WINDOWS_KITS_10_PATH}/include/${WINDOWS_KITS_10_VERSION}/winrt`,
+      `${WINDOWS_KITS_10_PATH}/include/${WINDOWS_KITS_10_VERSION}/cppwinrt`,
+    ];
+
+    const dir = (() => {
+      const arch = target.split('-')[0];
+      if (arch.endsWith('86')) return 'x86';
+      if (arch.endsWith('_64')) return 'x64';
+      if (/a.+64/.test(arch)) return 'arm64';
+      if (arch.startsWith('arm')) return 'arm';
+      return 'unknown-arch';
+    })();
+
+    const linkdirs = [
+      `${MSVC_PATH}/lib/${dir}`,
+      `${MSVC_PATH}/atlmfc/lib/${dir}`,
+      `${WINDOWS_KITS_10_PATH}/lib/${WINDOWS_KITS_10_VERSION}/ucrt/${dir}`,
+      `${WINDOWS_KITS_10_PATH}/lib/${WINDOWS_KITS_10_VERSION}/um/${dir}`,
+    ];
+
+    const CC = `${process.env.SMAKE_LLVM_PREFIX}clang`;
+    const CXX = `${process.env.SMAKE_LLVM_PREFIX}clang++`;
+    const AR = `${process.env.SMAKE_LLVM_PREFIX}llvm-lib`;
+    const LD = `${process.env.SMAKE_LLVM_PREFIX}clang++`;
+    const NM = `${process.env.SMAKE_LLVM_PREFIX}llvm-nm`;
+    const OBJDUMP = `${process.env.SMAKE_LLVM_PREFIX}llvm-objdump`;
+    const RANLIB = `${process.env.SMAKE_LLVM_PREFIX}llvm-ranlib`;
+    const CPPFLAGS = `-Wnonportable-include-path -target ${target} ${includes
+      .map((x) => '-I' + x)
+      .join(' ')} ${cxflags.join(' ')}`;
+    const LDFLAGS = `-fuse-ld=lld ${linkdirs.map((x) => '-L' + x).join(' ')}`;
+    const RUSTFLAGS = `-Clinker=${CC} -Clink-arg=-target -Clink-arg=${target} ${linkdirs
+      .map((x) => '-Clink-arg=-L' + x)
+      .join(' ')} -Clink-arg=-fuse-ld=lld`;
+    const env: any = {
+      CC,
+      CXX,
+      AR,
+      LD,
+      NM,
+      OBJDUMP,
+      RANLIB,
+      CFLAGS: CPPFLAGS,
+      CXXFLAGS: CPPFLAGS,
+      LDFLAGS,
+      RUSTFLAGS,
+    };
+    return env;
   } else if (target.includes('apple')) {
-
+    return {};
   } else {
     const CC = `${process.env.SMAKE_LLVM_PREFIX}clang`;
     const CXX = `${process.env.SMAKE_LLVM_PREFIX}clang++`;
@@ -91,9 +163,28 @@ function generateEnv(target: string) {
     const NM = `${process.env.SMAKE_LLVM_PREFIX}llvm-nm`;
     const OBJDUMP = `${process.env.SMAKE_LLVM_PREFIX}llvm-objdump`;
     const RANLIB = `${process.env.SMAKE_LLVM_PREFIX}llvm-ranlib`;
-    const CPPFLAGS = ''
-    return {
-      CC, CXX, AR, LD, NM, OBJDUMP, RANLIB
-    }
+    const CPPFLAGS = `-target ${target} --sysroot=${join(sysrootsDir, target)}`;
+    const LDFLAGS = '-fuse-ld=lld -Wl,--no-undefined -Wl,--as-needed';
+    const RUSTFLAGS = `-Clinker=${CC} -Ctarget-feature=+crt-static -Clink-arg=-target -Clink-arg=${target} -Clink-arg=--sysroot=${join(
+      sysrootsDir,
+      target
+    )} -Clink-arg=-fuse-ld=lld -Clink-arg=-Wl,--no-undefined -Clink-arg=-Wl,--as-needed`;
+    const env: any = {
+      CC,
+      CXX,
+      AR,
+      LD,
+      NM,
+      OBJDUMP,
+      RANLIB,
+      CFLAGS: CPPFLAGS,
+      CXXFLAGS: CPPFLAGS,
+      LDFLAGS,
+      RUSTFLAGS,
+    };
+    // env[`CC_${target}`] = [CC, CPPFLAGS].join(' ');
+    // env[`CXX_${target}`] = [CXX, CPPFLAGS].join(' ');
+    // env[`AR_${target}`] = AR;
+    return env;
   }
 }

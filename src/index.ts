@@ -45,14 +45,11 @@ function command(program: Command) {
     });
 
   sysroots
-    .command('exec [commands...]')
-    .description('execute commands')
-    .option(
-      '-t, --target <string>',
-      'target triple'
-    )
+    .command('exec [command]')
+    .description('execute command')
+    .option('-t, --target <string>', 'target triple')
     .action((args, opt) => {
-      exec(args, opt);
+      exec(opt, args);
     });
 }
 
