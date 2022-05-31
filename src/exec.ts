@@ -18,6 +18,11 @@ export async function exec(opt: any, command: string) {
     return;
   }
 
+  if (opt.target.includes('apple') || opt.target.includes('macos')) {
+    execSync(command, { env: process.env, stdio: 'inherit' });
+    return;
+  }
+
   const targets: { [k: string]: string } = {};
   for (const k of Object.keys(CommonTargets)) {
     targets[k] = '';
@@ -136,9 +141,10 @@ function generateEnv(target: string) {
       .map((x) => '-I' + x)
       .join(' ')} ${cxflags.join(' ')}`;
     const LDFLAGS = `-fuse-ld=lld ${linkdirs.map((x) => '-L' + x).join(' ')}`;
-    const RUSTFLAGS = `-Clinker=${CC} -Clink-arg=-target -Clink-arg=${target} ${linkdirs
-      .map((x) => '-Clink-arg=-L' + x)
-      .join(' ')} -Clink-arg=-fuse-ld=lld`;
+    const LL = `${process.env.SMAKE_LLVM_PREFIX}lld-link`;
+    const RUSTFLAGS = `-Clinker=${LL} ${linkdirs
+      .map((x) => '-Clink-arg=/LIBPATH:' + x)
+      .join(' ')}`;
     const env: any = {
       CC,
       CXX,
