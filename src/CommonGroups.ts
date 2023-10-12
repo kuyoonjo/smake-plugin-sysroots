@@ -48,6 +48,7 @@ export const CommonGroups = [
     install: true,
   },
   { id: 'msvc', name: 'Windows MSVC', keyword: 'windows-msvc', install: true },
+  { id: 'mingw', name: 'MinGW', keyword: 'windows-gnu', install: true },
   { id: 'wasi', name: 'WASI', keyword: 'wasi', install: true },
   { id: 'ndk', name: 'Android NDK', keyword: 'android', install: true },
 ];

@@ -24,6 +24,7 @@ export async function exec(opt: any, command: string) {
   }
 
   const targets: { [k: string]: string } = {};
+  const paths: { [k: string]: string } = {};
   for (const k of Object.keys(CommonTargets)) {
     targets[k] = '';
     if (await isInstalled(k)) targets[k] = green('installed');
@@ -37,6 +38,7 @@ export async function exec(opt: any, command: string) {
       .replace(/_/g, '-')
       .replace('x86-64', 'x86_64');
     targets[target] = yellow(`installed by ENV at ${v}`);
+    paths[target] = v!;
   }
 
   if (process.env['SMAKE_LLVM_MSVC_PATH']) {
@@ -66,7 +68,7 @@ export async function exec(opt: any, command: string) {
   const entries = Object.entries(targets);
   const installed = entries.filter((e) => e[1]).map((e) => e[0]);
   if (installed.includes(opt.target)) {
-    const env = generateEnv(opt.target);
+    const env = generateEnv(paths, opt.target);
     execSync(command, { env: { ...process.env, ...env }, stdio: 'inherit' });
   } else {
     if (entries.map((e) => e[0]).includes(opt.target)) {
@@ -77,7 +79,7 @@ export async function exec(opt: any, command: string) {
   }
 }
 
-function generateEnv(target: string) {
+function generateEnv(paths: any, target: string) {
   if (target.includes('windows-msvc')) {
     let MSVC_VERSION = process.env.SMAKE_LLVM_MSVC_VERSION;
     let MSVC_PATH = process.env.SMAKE_LLVM_MSVC_PATH;
@@ -146,6 +148,7 @@ function generateEnv(target: string) {
       .map((x) => '-Clink-arg=/LIBPATH:' + x)
       .join(' ')}`;
     const env: any = {
+      TARGET: target,
       CC,
       CXX,
       AR,
@@ -162,6 +165,7 @@ function generateEnv(target: string) {
   } else if (target.includes('apple')) {
     return {};
   } else {
+    const SYSROOTS = paths[target];
     const CC = `${process.env.SMAKE_LLVM_PREFIX}clang`;
     const CXX = `${process.env.SMAKE_LLVM_PREFIX}clang++`;
     const AR = `${process.env.SMAKE_LLVM_PREFIX}llvm-ar`;
@@ -169,13 +173,15 @@ function generateEnv(target: string) {
     const NM = `${process.env.SMAKE_LLVM_PREFIX}llvm-nm`;
     const OBJDUMP = `${process.env.SMAKE_LLVM_PREFIX}llvm-objdump`;
     const RANLIB = `${process.env.SMAKE_LLVM_PREFIX}llvm-ranlib`;
-    const CPPFLAGS = `-target ${target} --sysroot=${join(sysrootsDir, target)}`;
+    const CPPFLAGS = `-target ${target} --sysroot=${SYSROOTS}`;
     const LDFLAGS = '-fuse-ld=lld -Wl,--no-undefined -Wl,--as-needed';
     const RUSTFLAGS = `-Clinker=${CC} -Ctarget-feature=+crt-static -Clink-arg=-target -Clink-arg=${target} -Clink-arg=--sysroot=${join(
       sysrootsDir,
       target
     )} -Clink-arg=-fuse-ld=lld -Clink-arg=-Wl,--no-undefined -Clink-arg=-Wl,--as-needed`;
     const env: any = {
+      TARGET: target,
+      SYSROOTS,
       CC,
       CXX,
       AR,
