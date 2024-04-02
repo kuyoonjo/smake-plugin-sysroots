@@ -132,18 +132,20 @@ function generateEnv(paths: any, target: string) {
       `${WINDOWS_KITS_10_PATH}/lib/${WINDOWS_KITS_10_VERSION}/um/${dir}`,
     ];
 
-    const CC = `${process.env.SMAKE_LLVM_PREFIX}clang`;
-    const CXX = `${process.env.SMAKE_LLVM_PREFIX}clang++`;
-    const AR = `${process.env.SMAKE_LLVM_PREFIX}llvm-lib`;
-    const LD = `${process.env.SMAKE_LLVM_PREFIX}clang++`;
-    const NM = `${process.env.SMAKE_LLVM_PREFIX}llvm-nm`;
-    const OBJDUMP = `${process.env.SMAKE_LLVM_PREFIX}llvm-objdump`;
-    const RANLIB = `${process.env.SMAKE_LLVM_PREFIX}llvm-ranlib`;
+    const llvmPrefix = process.env.SMAKE_LLVM_PREFIX || '';
+
+    const CC = `${llvmPrefix}clang`;
+    const CXX = `${llvmPrefix}clang++`;
+    const AR = `${llvmPrefix}llvm-lib`;
+    const LD = `${llvmPrefix}clang++`;
+    const NM = `${llvmPrefix}llvm-nm`;
+    const OBJDUMP = `${llvmPrefix}llvm-objdump`;
+    const RANLIB = `${llvmPrefix}llvm-ranlib`;
     const CPPFLAGS = `-Wnonportable-include-path -target ${target} ${includes
       .map((x) => '-I' + x)
       .join(' ')} ${cxflags.join(' ')}`;
     const LDFLAGS = `-fuse-ld=lld ${linkdirs.map((x) => '-L' + x).join(' ')}`;
-    const LL = `${process.env.SMAKE_LLVM_PREFIX}lld-link`;
+    const LL = `${llvmPrefix}lld-link`;
     const RUSTFLAGS = `-Clinker=${LL} ${linkdirs
       .map((x) => '-Clink-arg=/LIBPATH:' + x)
       .join(' ')}`;
@@ -165,14 +167,18 @@ function generateEnv(paths: any, target: string) {
   } else if (target.includes('apple')) {
     return {};
   } else {
-    const SYSROOTS = paths[target];
-    const CC = `${process.env.SMAKE_LLVM_PREFIX}clang`;
-    const CXX = `${process.env.SMAKE_LLVM_PREFIX}clang++`;
-    const AR = `${process.env.SMAKE_LLVM_PREFIX}llvm-ar`;
-    const LD = `${process.env.SMAKE_LLVM_PREFIX}clang++`;
-    const NM = `${process.env.SMAKE_LLVM_PREFIX}llvm-nm`;
-    const OBJDUMP = `${process.env.SMAKE_LLVM_PREFIX}llvm-objdump`;
-    const RANLIB = `${process.env.SMAKE_LLVM_PREFIX}llvm-ranlib`;
+    const llvmPrefix = process.env.SMAKE_LLVM_PREFIX || '';
+
+    let SYSROOTS = paths[target] as string;
+    if (process.platform === 'win32')
+      SYSROOTS = SYSROOTS.replace(/\\/g, '/');
+    const CC = `${llvmPrefix}clang`;
+    const CXX = `${llvmPrefix}clang++`;
+    const AR = `${llvmPrefix}llvm-ar`;
+    const LD = `${llvmPrefix}clang++`;
+    const NM = `${llvmPrefix}llvm-nm`;
+    const OBJDUMP = `${llvmPrefix}llvm-objdump`;
+    const RANLIB = `${llvmPrefix}llvm-ranlib`;
     const CPPFLAGS = `-target ${target} --sysroot=${SYSROOTS}`;
     const LDFLAGS = '-fuse-ld=lld -Wl,--no-undefined -Wl,--as-needed';
     const RUSTFLAGS = `-Clinker=${CC} -Ctarget-feature=+crt-static -Clink-arg=-target -Clink-arg=${target} -Clink-arg=--sysroot=${join(
