@@ -69,6 +69,15 @@ export async function exec(opt: any, command: string) {
   const installed = entries.filter((e) => e[1]).map((e) => e[0]);
   if (installed.includes(opt.target)) {
     const env = generateEnv(paths, opt.target);
+    env.CLANG_VERSION = getClangVersion(env.CC);
+    if (opt.env) {
+      for (const p of opt.env) {
+        const m = (p as string).match(/(?<K>.+)=(?<V>.*)/);
+        if (m && m.groups) {
+          env[m.groups.K] = m.groups.V;
+        }
+      }
+    }
     execSync(command, { env: { ...process.env, ...env }, stdio: 'inherit' });
   } else {
     if (entries.map((e) => e[0]).includes(opt.target)) {
@@ -205,4 +214,11 @@ function generateEnv(paths: any, target: string) {
     // env[`AR_${target}`] = AR;
     return env;
   }
+}
+
+function getClangVersion(CC: string) {
+  const s = execSync(`${CC} --version`).toString();
+  const m = s.match(/clang version (?<Ver>\d+)/);
+  if (m && m.groups) return m.groups.Ver;
+  return "";
 }

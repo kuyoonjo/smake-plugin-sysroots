@@ -47,7 +47,8 @@ function command(program: Command) {
   sysroots
     .command('exec [command]')
     .description('execute command')
-    .option('-t, --target <string>', 'target triple')
+    .option('-t, --target <triple>', 'target triple')
+    .option('-e, --env <variables...>', 'environment variables')
     .action((args, opt) => {
       exec(opt, args);
     });
