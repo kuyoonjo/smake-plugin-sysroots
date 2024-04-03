@@ -9,7 +9,7 @@ import { createHash } from 'crypto';
 import { sysrootsDir } from './sysrootsDir';
 import { join } from 'smake';
 import { extract } from 'tar-stream';
-import { dirname } from 'path';
+import { basename, dirname, relative } from 'path';
 import { createReadStream, createWriteStream } from 'fs';
 import { isItemInstalled } from './isInstalled';
 
@@ -131,6 +131,8 @@ export async function untar(
   const st = await stat(input);
   const totalSize = st.size;
   const toLower = input.includes('msvc') && !(await caseInsensitive(input));
+  const triple = basename(input).replace('.tar', '');
+
   await new Promise<void>((r) => {
     let size = 0;
     let prefix = output + '/';
@@ -157,9 +159,10 @@ export async function untar(
           header.linkname = header.linkname!.toLowerCase();
         }
         const dist = prefix + header.name;
+        const link = header.linkname!.startsWith('/') ? relative(dirname(dist), prefix + triple + header.linkname!) : header.linkname!;
         await mkdir(dirname(dist), { recursive: true });
         await rm(dist, { force: true, recursive: true });
-        toSymlink.push({ link: header.linkname!, dist });
+        toSymlink.push({ link, dist });
         stream.resume();
         next();
       } else {
