@@ -14,7 +14,6 @@ import { createReadStream, createWriteStream } from 'fs';
 import { isItemInstalled } from './isInstalled';
 
 const urlDomain = 'github.com';
-const urlFastDomain = 'download.fastgit.org';
 const urlPath = '/kuyoonjo/sysroots/releases/download/v1.0.0/';
 let urlPrefix: string;
 
@@ -23,12 +22,11 @@ const urlSuffix = '.tar.xz';
 export async function install(
   sysroots: string[],
   opt: {
-    direct: boolean;
     force: boolean;
     group: boolean;
   }
 ) {
-  urlPrefix = 'https://' + (opt.direct ? urlDomain : urlFastDomain) + urlPath;
+  urlPrefix = 'https://' + urlDomain + urlPath;
   if (!sysroots.length) {
     console.log('error: no targets specified (use -h for help)');
     return;

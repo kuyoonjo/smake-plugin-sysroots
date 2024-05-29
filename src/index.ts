@@ -21,10 +21,6 @@ function command(program: Command) {
   sysroots
     .command('install [sysroots...]')
     .description('install sysroots')
-    .option(
-      '-d, --direct',
-      'download resource from github release without built-in proxy'
-    )
     .option('-f, --force', 'reinstall if already installed')
     .option(
       '-g, --group',

@@ -6,7 +6,7 @@ export function downloadFile(
   onProgress?: (progress: number) => void
 ) {
   return new Promise<void>((r, rr) => {
-    const res = download(url, savePath);
+    const res = download(url, savePath, { proxy: process.env.https_proxy });
     res.on('error', (err) => {
       rr(err);
     });
